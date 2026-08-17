@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from pathlib import Path
 
 from aiohttp import web
 from aiogram import Bot, Dispatcher
@@ -13,9 +14,18 @@ from handlers import router
 from seed import seed_data
 from web_server import configure as configure_server, create_app
 
+LOG_FILE = Path(__file__).resolve().parent / "bot.log"
+
+
+def setup_logging() -> None:
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+    file_handler = logging.FileHandler(LOG_FILE, encoding="utf-8")
+    file_handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(name)s: %(message)s"))
+    logging.getLogger().addHandler(file_handler)
+
 
 async def main() -> None:
-    logging.basicConfig(level=logging.INFO)
+    setup_logging()
 
     config = load_config()
     if not config.bot_token:

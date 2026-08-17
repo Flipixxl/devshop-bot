@@ -23,12 +23,12 @@ Write-Host "WEBAPP_URL updated in .env"
 Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -match "shop_bot\\bot.py" } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
 Start-Sleep -Seconds 2
 
-$cmdline = 'cmd.exe /c ""' + $dir + '\.venv\Scripts\python.exe" "' + $dir + '\bot.py" > "' + $dir + '\bot.out.log" 2> "' + $dir + '\bot.err.log""'
-$r = Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{ CurrentDirectory = $dir; CommandLine = $cmdline }
+$python = Join-Path $dir ".venv\Scripts\python.exe"
+$r = Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{ CurrentDirectory = $dir; CommandLine = '"' + $python + '" "' + $dir + '\bot.py"' }
 Start-Sleep -Seconds 8
 
 Write-Host "Bot PID: $($r.ProcessId)"
-Get-Content bot.err.log -Tail 3
+Get-Content bot.log -Tail 3 -ErrorAction SilentlyContinue
 Write-Host ""
 Write-Host "Mini App URL: $url"
 Write-Host "Don't forget: add this domain in BotFather -> /setdomain"
