@@ -61,7 +61,7 @@ async function api(path, opts = {}) {
 
 /* ---------- init ---------- */
 async function init() {
-  if (!tg) {
+  if (!tg || !tg.initData) {
     view.innerHTML =
       '<div class="empty"><div class="e-ico">📱</div><div class="e-title">Откройте в Telegram</div>' +
       '<p>Это мини-приложение Telegram. Откройте его через бота DevShop.</p></div>';
