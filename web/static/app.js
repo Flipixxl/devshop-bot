@@ -435,7 +435,12 @@ $("#bottomNav").addEventListener("click", (e) => {
 });
 
 document.addEventListener("keydown", (e) => {
-  if (e.key === "Backspace" && ["product", "checkout", "admin-order"].includes(state.view)) goBack();
+  if (e.key !== "Backspace") return;
+  const target = e.target;
+  const typing =
+    target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable);
+  if (typing) return;
+  if (["product", "checkout", "admin-order"].includes(state.view)) goBack();
 });
 
 init();
