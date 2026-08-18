@@ -144,7 +144,7 @@ function productCard(p) {
   const inCart = state.cart.items.find((i) => i.product_id === p.id);
   return `
     <article class="card" data-action="product" data-id="${p.id}">
-      <div class="card-img"><img src="${esc(p.photo_url)}" alt="${esc(p.name)}" loading="lazy" onerror="this.remove()"></div>
+      <div class="card-img" style="--emoji:'${p.emoji || "🛍"}'"><img src="${esc(p.photo_url)}" alt="${esc(p.name)}" loading="lazy" onerror="this.remove()"></div>
       <div class="card-body">
         <h3>${esc(p.name)}</h3>
         <p class="card-desc">${esc(p.description)}</p>
@@ -165,7 +165,7 @@ function renderProduct() {
   const q = item ? item.quantity : 1;
   view.innerHTML = `
     <div class="detail">
-      <div class="detail-img"><img src="${esc(p.photo_url)}" alt="${esc(p.name)}" onerror="this.remove()"></div>
+      <div class="detail-img" style="--emoji:'${p.emoji || "🛍"}'"><img src="${esc(p.photo_url)}" alt="${esc(p.name)}" onerror="this.remove()"></div>
       <h1>${esc(p.name)}</h1>
       <p class="desc">${esc(p.description)}</p>
       <div class="stock">✔ В наличии: ${p.stock} шт.</div>
@@ -268,7 +268,11 @@ function renderSuccess() {
 /* ---------- orders ---------- */
 async function renderOrders() {
   if (!state.orders.length) {
-    try { state.orders = (await api("/api/orders")).orders; } catch (e) { toast(e.message, "err"); }
+    try { state.orders = (await api("/api/orders")).orders; }
+    catch (e) {
+      view.innerHTML = `<div class="empty"><div class="e-ico">⚠️</div><div class="e-title">Не удалось загрузить заказы</div><p>${esc(e.message)}</p></div>`;
+      return;
+    }
   }
   if (!state.orders.length) {
     view.innerHTML = `
@@ -319,7 +323,13 @@ async function loadAdminOrders() {
 }
 
 async function renderAdminOrder() {
-  const data = await api(`/api/admin/orders/${state.adminOrderId}`);
+  let data;
+  try {
+    data = await api(`/api/admin/orders/${state.adminOrderId}`);
+  } catch (e) {
+    view.innerHTML = `<div class="empty"><div class="e-ico">⚠️</div><div class="e-title">Не удалось загрузить заказ</div><p>${esc(e.message)}</p></div>`;
+    return;
+  }
   const o = data.order;
   const items = data.items;
   const st = STATUS[o.status] || STATUS.new;
@@ -347,37 +357,45 @@ async function renderAdminOrder() {
 
 /* ---------- actions ---------- */
 async function addToCart(productId) {
-  const item = state.cart.items.find((i) => i.product_id === productId);
-  const q = item ? item.quantity + 1 : 1;
-  state.cart = await api("/api/cart/set", { method: "POST", body: { product_id: productId, quantity: q } });
-  updateCartBadge();
-  buzz();
-  toast("Товар добавлен в корзину");
-  if (state.view === "product") renderProduct();
-  else if (state.view === "catalog") renderCatalog();
+  try {
+    const item = state.cart.items.find((i) => i.product_id === productId);
+    const q = item ? item.quantity + 1 : 1;
+    state.cart = await api("/api/cart/set", { method: "POST", body: { product_id: productId, quantity: q } });
+    updateCartBadge();
+    buzz();
+    toast("Товар добавлен в корзину");
+    if (state.view === "product") renderProduct();
+    else if (state.view === "catalog") renderCatalog();
+  } catch (e) { toast(e.message, "err"); }
 }
 
 async function setQty(productId, q) {
-  if (q < 0) q = 0;
-  state.cart = await api("/api/cart/set", { method: "POST", body: { product_id: productId, quantity: q } });
-  updateCartBadge();
-  buzz();
-  if (state.view === "cart") renderCart();
-  else if (state.view === "product") renderProduct();
+  try {
+    if (q < 0) q = 0;
+    state.cart = await api("/api/cart/set", { method: "POST", body: { product_id: productId, quantity: q } });
+    updateCartBadge();
+    buzz();
+    if (state.view === "cart") renderCart();
+    else if (state.view === "product") renderProduct();
+  } catch (e) { toast(e.message, "err"); }
 }
 
 async function clearCart() {
-  state.cart = await api("/api/cart/clear", { method: "POST" });
-  updateCartBadge();
-  buzz();
-  renderCart();
+  try {
+    state.cart = await api("/api/cart/clear", { method: "POST" });
+    updateCartBadge();
+    buzz();
+    renderCart();
+  } catch (e) { toast(e.message, "err"); }
 }
 
 async function changeStatus(orderId, status) {
-  await api(`/api/admin/orders/${orderId}`, { method: "PATCH", body: { status } });
-  buzz();
-  toast("Статус обновлён");
-  renderAdminOrder();
+  try {
+    await api(`/api/admin/orders/${orderId}`, { method: "PATCH", body: { status } });
+    buzz();
+    toast("Статус обновлён");
+    renderAdminOrder();
+  } catch (e) { toast(e.message, "err"); }
 }
 
 async function notifyStatus(orderId) {

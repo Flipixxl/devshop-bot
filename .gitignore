@@ -6,3 +6,4 @@ shop.db
 *.log
 .bot.pid
 cloudflared.exe
+t.out

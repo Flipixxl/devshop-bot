@@ -40,6 +40,21 @@ def _error(message: str, status: int = 400) -> web.Response:
     return _json({"ok": False, "error": message}, status=status)
 
 
+async def _read_json(request: web.Request) -> dict | None:
+    try:
+        data = await request.json()
+        return data if isinstance(data, dict) else None
+    except Exception:
+        return None
+
+
+def _to_int(value) -> int | None:
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
 def _is_admin(user_id: int) -> bool:
     return _cfg is not None and user_id in _cfg.admin_ids
 
@@ -114,7 +129,10 @@ async def api_catalog(request: web.Request) -> web.Response:
 
 
 async def api_product(request: web.Request) -> web.Response:
-    product = await get_product(int(request.match_info["product_id"]))
+    product_id = _to_int(request.match_info.get("product_id"))
+    if product_id is None:
+        return _error("Товар не найден", 404)
+    product = await get_product(product_id)
     if product is None:
         return _error("Товар не найден", 404)
     return _json({"ok": True, "product": product})
@@ -125,9 +143,13 @@ async def api_cart(request: web.Request) -> web.Response:
 
 
 async def api_cart_set(request: web.Request) -> web.Response:
-    body = await request.json()
-    product_id = int(body.get("product_id", 0))
-    quantity = int(body.get("quantity", 0))
+    body = await _read_json(request)
+    if body is None:
+        return _error("Некорректный запрос")
+    product_id = _to_int(body.get("product_id"))
+    quantity = _to_int(body.get("quantity"))
+    if product_id is None or quantity is None:
+        return _error("Некорректный запрос")
     product = await get_product(product_id)
     if product is None:
         return _error("Товар не найден", 404)
@@ -141,7 +163,9 @@ async def api_cart_clear(request: web.Request) -> web.Response:
 
 
 async def api_orders_create(request: web.Request) -> web.Response:
-    body = await request.json()
+    body = await _read_json(request)
+    if body is None:
+        return _error("Некорректный запрос")
     name = (body.get("name") or "").strip()
     phone = (body.get("phone") or "").strip()
     if not name or len(name) > 60:
@@ -170,7 +194,10 @@ async def api_admin_orders(request: web.Request) -> web.Response:
 
 
 async def api_admin_order(request: web.Request) -> web.Response:
-    order = await get_order(int(request.match_info["order_id"]))
+    order_id = _to_int(request.match_info.get("order_id"))
+    if order_id is None:
+        return _error("Заказ не найден", 404)
+    order = await get_order(order_id)
     if order is None:
         return _error("Заказ не найден", 404)
     items = await get_order_items(order["id"])
@@ -178,10 +205,15 @@ async def api_admin_order(request: web.Request) -> web.Response:
 
 
 async def api_admin_order_patch(request: web.Request) -> web.Response:
-    order = await get_order(int(request.match_info["order_id"]))
+    order_id = _to_int(request.match_info.get("order_id"))
+    if order_id is None:
+        return _error("Заказ не найден", 404)
+    order = await get_order(order_id)
     if order is None:
         return _error("Заказ не найден", 404)
-    body = await request.json()
+    body = await _read_json(request)
+    if body is None:
+        return _error("Некорректный запрос")
     status = body.get("status", "")
     if status not in ORDER_STATUSES:
         return _error("Неизвестный статус")
@@ -191,10 +223,15 @@ async def api_admin_order_patch(request: web.Request) -> web.Response:
 
 
 async def api_admin_order_notify(request: web.Request) -> web.Response:
-    order = await get_order(int(request.match_info["order_id"]))
+    order_id = _to_int(request.match_info.get("order_id"))
+    if order_id is None:
+        return _error("Заказ не найден", 404)
+    order = await get_order(order_id)
     if order is None:
         return _error("Заказ не найден", 404)
-    body = await request.json()
+    body = await _read_json(request)
+    if body is None:
+        return _error("Некорректный запрос")
     mode = body.get("mode", "status")
     if mode == "status":
         text = (

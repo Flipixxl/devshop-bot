@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS products (
     description TEXT NOT NULL DEFAULT '',
     price INTEGER NOT NULL,
     photo_url TEXT NOT NULL DEFAULT '',
+    emoji TEXT NOT NULL DEFAULT '🛍',
     stock INTEGER NOT NULL DEFAULT 0
 );
 
@@ -71,6 +72,9 @@ async def init_db() -> None:
     conn = await _connect()
     try:
         await conn.executescript(SCHEMA)
+        cols = await conn.execute_fetchall("PRAGMA table_info(products)")
+        if not any(col["name"] == "emoji" for col in cols):
+            await conn.execute("ALTER TABLE products ADD COLUMN emoji TEXT NOT NULL DEFAULT '🛍'")
         await conn.commit()
     finally:
         await conn.close()
@@ -121,36 +125,6 @@ async def get_cart_items(user_id: int) -> list[dict]:
         await conn.close()
 
 
-async def cart_total(user_id: int) -> int:
-    conn = await _connect()
-    try:
-        rows = await conn.execute_fetchall(
-            """SELECT SUM(p.price * c.quantity) AS total
-               FROM cart_items c
-               JOIN products p ON p.id = c.product_id
-               WHERE c.user_id = ?""",
-            (user_id,),
-        )
-        return rows[0]["total"] or 0 if rows else 0
-    finally:
-        await conn.close()
-
-
-async def add_to_cart(user_id: int, product_id: int) -> None:
-    conn = await _connect()
-    try:
-        await conn.execute(
-            """INSERT INTO cart_items (user_id, product_id, quantity)
-               VALUES (?, ?, 1)
-               ON CONFLICT (user_id, product_id)
-               DO UPDATE SET quantity = MIN(quantity + 1, 99)""",
-            (user_id, product_id),
-        )
-        await conn.commit()
-    finally:
-        await conn.close()
-
-
 async def set_quantity(user_id: int, product_id: int, quantity: int) -> None:
     conn = await _connect()
     try:
@@ -186,36 +160,6 @@ async def get_catalog() -> list[dict]:
             item["products"] = [dict(product) for product in products]
             result.append(item)
         return result
-    finally:
-        await conn.close()
-
-
-async def change_quantity(user_id: int, product_id: int, delta: int) -> None:
-    conn = await _connect()
-    try:
-        await conn.execute(
-            """UPDATE cart_items
-               SET quantity = MAX(0, MIN(quantity + ?, 99))
-               WHERE user_id = ? AND product_id = ?""",
-            (delta, user_id, product_id),
-        )
-        await conn.execute(
-            "DELETE FROM cart_items WHERE user_id = ? AND product_id = ? AND quantity <= 0",
-            (user_id, product_id),
-        )
-        await conn.commit()
-    finally:
-        await conn.close()
-
-
-async def remove_from_cart(user_id: int, product_id: int) -> None:
-    conn = await _connect()
-    try:
-        await conn.execute(
-            "DELETE FROM cart_items WHERE user_id = ? AND product_id = ?",
-            (user_id, product_id),
-        )
-        await conn.commit()
     finally:
         await conn.close()
 
