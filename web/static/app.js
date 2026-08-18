@@ -15,17 +15,17 @@ const state = {
 };
 
 const STATUS = {
-  new: { label: "🆕 Новый", cls: "new" },
-  processing: { label: "🔄 В работе", cls: "processing" },
-  done: { label: "✅ Выполнен", cls: "done" },
-  cancelled: { label: "❌ Отменён", cls: "cancelled" },
+  new: { label: "Новый", cls: "new" },
+  processing: { label: "В работе", cls: "processing" },
+  done: { label: "Выполнен", cls: "done" },
+  cancelled: { label: "Отменён", cls: "cancelled" },
 };
 const ADMIN_TABS = [
   ["", "Все"],
-  ["new", "🆕"],
-  ["processing", "🔄"],
-  ["done", "✅"],
-  ["cancelled", "❌"],
+  ["new", "Новые"],
+  ["processing", "В работе"],
+  ["done", "Выполнен"],
+  ["cancelled", "Отменён"],
 ];
 
 const $ = (sel) => document.querySelector(sel);
@@ -69,7 +69,7 @@ async function init() {
   }
   tg.ready();
   tg.expand();
-  try { tg.setHeaderColor("#0a0e1a"); tg.setBackgroundColor("#0a0e1a"); } catch (e) {}
+  try { tg.setHeaderColor("#0f1117"); tg.setBackgroundColor("#0f1117"); } catch (e) {}
 
   try {
     state.me = await api("/api/me");
@@ -128,7 +128,7 @@ function updateCartBadge() {
 /* ---------- catalog ---------- */
 function renderCatalog() {
   view.innerHTML = `
-    <div class="section-title">🛍 <span class="muted">Каталог</span></div>
+    <div class="section-title">Каталог</div>
     <div class="chips">${state.catalog.map((c) =>
       `<button class="chip ${c.id === state.categoryId ? "active" : ""}" data-action="cat" data-id="${c.id}">${c.emoji} ${esc(c.name)}</button>`).join("")}</div>
     ${renderProducts()}`;
@@ -177,7 +177,7 @@ function renderProduct() {
           <button data-action="qty" data-id="${p.id}" data-qty="${q + 1}" aria-label="Больше">+</button>
         </div>
       </div>
-      <button class="btn btn-primary btn-block" style="margin-top:12px" data-action="cart-add" data-id="${p.id}">🛒 Добавить в корзину</button>
+      <button class="btn btn-primary btn-block" style="margin-top:12px" data-action="cart-add" data-id="${p.id}">Добавить в корзину</button>
     </div>`;
 }
 
@@ -189,16 +189,16 @@ function renderCart() {
         <div class="e-ico">🛒</div>
         <div class="e-title">Корзина пуста</div>
         <p>Загляните в каталог и добавьте что-нибудь крутое.</p>
-        <button class="btn btn-primary" data-action="nav-catalog">🛍 В каталог</button>
+        <button class="btn btn-primary" data-action="nav-catalog">В каталог</button>
       </div>`;
     return;
   }
   view.innerHTML = `
-    <div class="section-title">🛒 <span class="muted">Корзина</span></div>
+    <div class="section-title">Корзина</div>
     ${state.cart.items.map(cartItemRow).join("")}
     <div class="cart-total"><span class="lbl">Итого</span><span class="val">${fmt(state.cart.total)} ₽</span></div>
-    <button class="btn btn-primary btn-block" data-action="checkout">✅ Оформить заказ</button>
-    <button class="btn btn-ghost btn-block" style="margin-top:10px" data-action="cart-clear">🧹 Очистить корзину</button>`;
+    <button class="btn btn-primary btn-block" data-action="checkout">Оформить заказ</button>
+    <button class="btn btn-ghost btn-block" style="margin-top:10px" data-action="cart-clear">Очистить корзину</button>`;
 }
 
 function cartItemRow(it) {
@@ -222,7 +222,7 @@ function cartItemRow(it) {
 function renderCheckout() {
   if (!state.cart.items.length) return show("cart");
   view.innerHTML = `
-    <div class="section-title">📋 <span class="muted">Оформление заказа</span></div>
+    <div class="section-title">Оформление заказа</div>
     <div class="detail-block">
       <div class="db-title">Ваш заказ</div>
       ${state.cart.items.map((it) => `<div class="db-row"><span class="k">${esc(it.name)} × ${it.quantity}</span><span class="v">${fmt(it.price * it.quantity)} ₽</span></div>`).join("")}
@@ -232,7 +232,7 @@ function renderCheckout() {
     </div>
     <div class="field"><label>Ваше имя</label><input id="coName" class="input" placeholder="Иван" value="${esc(state.me.first_name)}" autocomplete="off"></div>
     <div class="field"><label>Телефон</label><input id="coPhone" class="input" type="tel" placeholder="+7 900 000-00-00" autocomplete="tel"></div>
-    <button class="btn btn-primary btn-block" data-action="submit-order">✅ Подтвердить заказ</button>`;
+    <button class="btn btn-primary btn-block" data-action="submit-order">Подтвердить заказ</button>`;
 }
 
 async function submitOrder() {
@@ -256,12 +256,12 @@ function renderSuccess() {
   const o = state.lastOrder;
   view.innerHTML = `
     <div class="success">
-      <div class="s-ico">🎉</div>
-      <h1>Заказ оформлен!</h1>
+      <div class="s-ico">✓</div>
+      <h1>Заказ оформлен</h1>
       <div class="s-num">Заказ №${o.id} · ${o.created_at}</div>
       <div class="s-total">${fmt(o.total)} ₽</div>
       <p class="muted" style="margin:0">Мы свяжемся с вами в ближайшее время.</p>
-      <button class="btn btn-primary btn-block" style="margin-top:22px" data-action="nav-catalog">🛍 Вернуться в каталог</button>
+      <button class="btn btn-primary btn-block" style="margin-top:22px" data-action="nav-catalog">Вернуться в каталог</button>
     </div>`;
 }
 
@@ -280,12 +280,12 @@ async function renderOrders() {
         <div class="e-ico">📦</div>
         <div class="e-title">Заказов пока нет</div>
         <p>Оформите первый заказ в каталоге.</p>
-        <button class="btn btn-primary" data-action="nav-catalog">🛍 В каталог</button>
+        <button class="btn btn-primary" data-action="nav-catalog">В каталог</button>
       </div>`;
     return;
   }
   view.innerHTML = `
-    <div class="section-title">📦 <span class="muted">Мои заказы</span></div>
+    <div class="section-title">Мои заказы</div>
     ${state.orders.map(orderRow).join("")}`;
 }
 
@@ -310,7 +310,7 @@ async function renderAdmin() {
   if (!state.me.is_admin) return show("catalog");
   await loadAdminOrders();
   view.innerHTML = `
-    <div class="section-title">⚙️ <span class="muted">Админ-панель</span></div>
+    <div class="section-title">Админ-панель</div>
     <div class="admin-tabs">${ADMIN_TABS.map(([val, label]) =>
       `<button class="atab ${state.adminFilter === val ? "active" : ""}" data-action="admin-filter" data-val="${val}">${label}</button>`).join("")}</div>
     ${state.adminOrders.length ? state.adminOrders.map(orderRow).join("") :
@@ -334,7 +334,7 @@ async function renderAdminOrder() {
   const items = data.items;
   const st = STATUS[o.status] || STATUS.new;
   view.innerHTML = `
-    <div class="section-title">📦 Заказ #${o.id} <span class="badge ${st.cls}">${st.label}</span></div>
+    <div class="section-title">Заказ #${o.id} <span class="badge ${st.cls}">${st.label}</span></div>
     <div class="detail-block">
       <div class="db-row"><span class="k">Дата</span><span class="v">${o.created_at}</span></div>
       <div class="db-row"><span class="k">Клиент</span><span class="v">${esc(o.customer_name)}</span></div>
@@ -348,7 +348,7 @@ async function renderAdminOrder() {
     <div class="db-title">Статус</div>
     <div class="status-btns">${Object.entries(STATUS).map(([key, s]) =>
       `<button class="sbtn ${key === o.status ? "active" : ""}" data-action="set-status" data-id="${o.id}" data-status="${key}">${s.label}</button>`).join("")}</div>
-    <button class="btn btn-primary btn-block" data-action="notify-status" data-id="${o.id}">📨 Сообщить статус клиенту</button>
+    <button class="btn btn-primary btn-block" data-action="notify-status" data-id="${o.id}">Сообщить статус клиенту</button>
     <div class="notify-input">
       <input id="ntText" class="input" placeholder="Свой текст клиенту...">
       <button class="btn btn-ghost btn-sm" data-action="notify-text" data-id="${o.id}">Отправить</button>

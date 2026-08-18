@@ -53,7 +53,7 @@ async def main() -> None:
     logging.info("Mini App server started on http://%s:%s", config.host, config.port)
 
     await bot.set_chat_menu_button(
-        menu_button=MenuButtonWebApp(text="🛍 Магазин", web_app=WebAppInfo(url=config.webapp_url))
+        menu_button=MenuButtonWebApp(text="Магазин", web_app=WebAppInfo(url=config.webapp_url))
     )
 
     try:

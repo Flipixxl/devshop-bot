@@ -26,6 +26,14 @@ _bot = None
 _cfg: Config = None
 
 
+@web.middleware
+async def _no_cache(request: web.Request, handler) -> web.StreamResponse:
+    response = await handler(request)
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    return response
+
+
 def configure(bot, config: Config) -> None:
     global _bot, _cfg
     _bot = bot
@@ -253,7 +261,7 @@ async def api_admin_order_notify(request: web.Request) -> web.Response:
 
 
 def create_app() -> web.Application:
-    app = web.Application()
+    app = web.Application(middlewares=[_no_cache])
     app.router.add_get("/", index)
     app.router.add_get("/index.html", index)
     app.router.add_static("/static/", WEB_DIR / "static")
