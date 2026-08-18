@@ -71,6 +71,8 @@ async function init() {
   tg.expand();
   try { tg.setHeaderColor("#0f1117"); tg.setBackgroundColor("#0f1117"); } catch (e) {}
 
+  view.innerHTML = renderSkeleton();
+
   try {
     state.me = await api("/api/me");
     state.catalog = (await api("/api/catalog")).categories;
@@ -123,6 +125,65 @@ function updateCartBadge() {
   $("#navCartCount").textContent = state.cart.count;
   $("#navCartCount").classList.toggle("hidden", state.cart.count === 0);
   $("#cartBadge").classList.toggle("hidden", state.cart.count === 0 && state.view !== "cart");
+}
+
+/* ---------- loaders & effects ---------- */
+function renderSkeleton() {
+  return `
+    <div class="skel-row">
+      ${Array.from({ length: 4 }, () => '<div class="skel skel-chip"></div>').join("")}
+    </div>
+    <div class="grid">
+      ${Array.from({ length: 6 }, () => '<div class="skel skel-card"></div>').join("")}
+    </div>`;
+}
+
+function orderSkeleton() {
+  return Array.from(
+    { length: 4 },
+    () => '<div class="detail-block"><div class="skel skel-line w60"></div><div class="skel skel-line"></div></div>'
+  ).join("");
+}
+
+function flyToCart(fromEl) {
+  const cartEl = $("#cartBadge");
+  if (!cartEl || cartEl.classList.contains("hidden")) return;
+  const a = fromEl.getBoundingClientRect();
+  const b = cartEl.getBoundingClientRect();
+  const dot = document.createElement("span");
+  dot.className = "fly-dot";
+  dot.style.left = a.left + a.width / 2 - 6 + "px";
+  dot.style.top = a.top + a.height / 2 - 6 + "px";
+  document.body.appendChild(dot);
+  requestAnimationFrame(() =>
+    requestAnimationFrame(() => {
+      dot.style.transform =
+        `translate(${b.left + b.width / 2 - (a.left + a.width / 2)}px, ` +
+        `${b.top + b.height / 2 - (a.top + a.height / 2)}px) scale(0.3)`;
+      dot.style.opacity = "0.2";
+    })
+  );
+  setTimeout(() => dot.remove(), 650);
+}
+
+function confetti() {
+  const colors = ["#4f7cff", "#8faaff", "#3d66e0", "#eceef2"];
+  const wrap = document.createElement("div");
+  wrap.className = "confetti-wrap";
+  document.body.appendChild(wrap);
+  for (let i = 0; i < 48; i++) {
+    const p = document.createElement("span");
+    p.className = "confetti-p";
+    p.style.left = 28 + Math.random() * 44 + "%";
+    p.style.background = colors[i % colors.length];
+    p.style.setProperty("--dx", Math.round(Math.random() * 160 - 80) + "px");
+    p.style.setProperty("--r", Math.round(Math.random() * 720 - 360) + "deg");
+    p.style.setProperty("--d", Math.round(Math.random() * 300) + "ms");
+    p.style.setProperty("--w", Math.round(Math.random() * 6 + 5) + "px");
+    p.style.setProperty("--h", Math.round(Math.random() * 8 + 6) + "px");
+    wrap.appendChild(p);
+  }
+  setTimeout(() => wrap.remove(), 2000);
 }
 
 /* ---------- catalog ---------- */
@@ -263,11 +324,13 @@ function renderSuccess() {
       <p class="muted" style="margin:0">Мы свяжемся с вами в ближайшее время.</p>
       <button class="btn btn-primary btn-block" style="margin-top:22px" data-action="nav-catalog">Вернуться в каталог</button>
     </div>`;
+  confetti();
 }
 
 /* ---------- orders ---------- */
 async function renderOrders() {
   if (!state.orders.length) {
+    view.innerHTML = `<div class="section-title">Мои заказы</div>` + orderSkeleton();
     try { state.orders = (await api("/api/orders")).orders; }
     catch (e) {
       view.innerHTML = `<div class="empty"><div class="e-ico">⚠️</div><div class="e-title">Не удалось загрузить заказы</div><p>${esc(e.message)}</p></div>`;
@@ -356,13 +419,14 @@ async function renderAdminOrder() {
 }
 
 /* ---------- actions ---------- */
-async function addToCart(productId) {
+async function addToCart(productId, el) {
   try {
     const item = state.cart.items.find((i) => i.product_id === productId);
     const q = item ? item.quantity + 1 : 1;
     state.cart = await api("/api/cart/set", { method: "POST", body: { product_id: productId, quantity: q } });
     updateCartBadge();
     buzz();
+    if (state.view === "catalog" && el?.classList.contains("btn-add")) flyToCart(el);
     toast("Товар добавлен в корзину");
     if (state.view === "product") renderProduct();
     else if (state.view === "catalog") renderCatalog();
@@ -421,7 +485,7 @@ const handlers = {
   cat: (d) => { state.categoryId = Number(d.id); buzz(); renderCatalog(); },
   product: (d) => { state.productId = Number(d.id); show("product"); },
   back: () => goBack(),
-  "cart-add": (d) => addToCart(Number(d.id)),
+  "cart-add": (d, el) => addToCart(Number(d.id), el),
   qty: (d) => setQty(Number(d.id), Number(d.qty)),
   "cart-remove": (d) => setQty(Number(d.id), 0),
   "cart-clear": () => clearCart(),
@@ -441,7 +505,7 @@ view.addEventListener("click", (e) => {
   if (!el) return;
   e.stopPropagation();
   const h = handlers[el.dataset.action];
-  if (h) h(el.dataset);
+  if (h) h(el.dataset, el);
 });
 
 $("#bottomNav").addEventListener("click", (e) => {

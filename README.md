@@ -46,3 +46,20 @@ web/            — фронтенд мини-аппа (index.html, style.css, a
 3. Env vars: `BOT_TOKEN`, `ADMIN_IDS`, `WEBAPP_URL` (домен Railway, вида `https://xxx.up.railway.app`).
 4. **Volumes**: добавь Persistent Volume с путём монтирования `/data` — там живёт `shop.db`.
 5. Открой мини-апп по домену Railway и добавь этот домен в @BotFather → `/setdomain`.
+
+## Фото товаров
+
+Изображения товаров взяты с [Wikimedia Commons](https://commons.wikimedia.org) (свободные лицензии, размер миниатюр 1280px) и хранятся локально в `web/static/img/products/`:
+
+- product-1: [Schenker VIA14 Laptop asv2021-01](https://commons.wikimedia.org/wiki/File:Schenker_VIA14_Laptop_asv2021-01.jpg)
+- product-2: [IMac Pro (2017)](https://commons.wikimedia.org/wiki/File:IMac_Pro_(2017).jpg)
+- product-3: [Antec ISK110 mini-PC front-left](https://commons.wikimedia.org/wiki/File:Antec_ISK110_mini-PC_front-left.JPG)
+- product-4: [Computer monitor screen image simulated](https://commons.wikimedia.org/wiki/File:Computer_monitor_screen_image_simulated.jpg)
+- product-5: [Beautiful Mechanical Keyboard](https://commons.wikimedia.org/wiki/File:Beautiful_Mechanical_Keyboard.jpg)
+- product-6: [Logitech G903 Lightspeed](https://commons.wikimedia.org/wiki/File:2023_Mysz_komputerowa_Logitech_G903_Lightspeed.jpg)
+- product-7: [Bose QuietComfort 25](https://commons.wikimedia.org/wiki/File:Bose_QuietComfort_25_Acoustic_Noise_Cancelling_Headphones_with_Carry_Case.jpg)
+- product-8: [Razer Destructor 2 (top)](https://commons.wikimedia.org/wiki/File:Razer_Destructor_2-top_PNr%C2%B00406.jpg)
+- product-9: [Windows 11 desktop](https://commons.wikimedia.org/wiki/File:Windows_11_22000.71_x64-2021-07-19-11-42-12_ohne_Cursor.png)
+- product-10: [Microsoft Office logo (2013–2019)](https://commons.wikimedia.org/wiki/File:Microsoft_Office_logo_(2013%E2%80%932019).svg)
+- product-11: [Quanta Computer cloud servers](https://commons.wikimedia.org/wiki/File:Quanta_Computer_cloud_computing_servers_at_COSCUP_20120819.jpg)
+- product-12: [Computer repair in progress](https://commons.wikimedia.org/wiki/File:Computer_repair_in_progress.jpg)

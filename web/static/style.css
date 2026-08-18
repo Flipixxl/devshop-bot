@@ -289,6 +289,38 @@ main { padding: 16px 16px calc(var(--nav-h) + 28px); animation: fadeIn 0.22s eas
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
 .toast.err { border-color: rgba(224, 85, 85, 0.5); color: #ee7a7a; }
 
+/* ---------- skeleton loaders ---------- */
+.skel { position: relative; overflow: hidden; background: var(--surface-2); border-radius: 10px; }
+.skel::after {
+  content: ""; position: absolute; inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(79, 124, 255, 0.09), transparent);
+  animation: shimmer 1.3s ease-in-out infinite;
+}
+@keyframes shimmer { 100% { transform: translateX(100%); } }
+.skel-row { display: flex; gap: 8px; padding: 2px 2px 14px; }
+.skel-chip { flex: 0 0 auto; width: 88px; height: 36px; }
+.skel-card { height: 248px; border-radius: var(--radius); }
+.skel-line { height: 13px; margin-bottom: 8px; }
+.skel-line.w60 { width: 60%; }
+
+/* ---------- fly-to-cart ---------- */
+.fly-dot {
+  position: fixed; z-index: 60; width: 12px; height: 12px; border-radius: 50%;
+  background: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); pointer-events: none;
+  transition: transform 0.55s cubic-bezier(0.2, 0.8, 0.3, 1), opacity 0.45s ease;
+}
+
+/* ---------- confetti ---------- */
+.confetti-wrap { position: fixed; inset: 0; z-index: 70; pointer-events: none; overflow: hidden; }
+.confetti-p {
+  position: absolute; top: -20px; width: var(--w); height: var(--h); border-radius: 2px;
+  animation: conf-fall 1.6s var(--d) cubic-bezier(0.25, 0.5, 0.5, 1) forwards;
+}
+@keyframes conf-fall {
+  to { transform: translate(var(--dx), 110vh) rotate(var(--r)); opacity: 0; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
