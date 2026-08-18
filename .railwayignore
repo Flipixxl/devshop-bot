@@ -1,0 +1,11 @@
+.venv
+__pycache__
+*.pyc
+.env
+shop.db
+*.log
+.bot.pid
+cloudflared.exe
+.git
+.gitignore
+.railwayignore
